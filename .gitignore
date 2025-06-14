@@ -1,0 +1,3 @@
+# les fichiers que l'on veut ignorer dans github
+venv*/ 
+__pycache__/

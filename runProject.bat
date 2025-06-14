@@ -1,8 +1,10 @@
 @echo off
 setlocal
 set ENV_NAME=venv_drone
+
+:: A modifier par ton python et ton main
 set PYTHON_EXE=C:\Users\josep\AppData\Local\Programs\Python\Python311\python.exe
-set MAIN_FILE=main.py
+set MAIN_FILE=gesture_control\main.py
 set REQ_FILE=requirements.txt
 
 :: 1. Créer le venv s'il n'existe pas
@@ -23,7 +25,7 @@ if exist "%REQ_FILE%" (
     echo [WARNING] No requirements.txt found. Skipping package installation.
 )
 
-:: 4. Lancer le script principal
+:: 4. Lancer le script
 echo [INFO] Running %MAIN_FILE%...
 python "%MAIN_FILE%"
 
