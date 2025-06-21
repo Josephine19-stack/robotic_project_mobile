@@ -16,30 +16,30 @@ def close_stream(me):
 def send_tello_command(me, command):
     if command == "OPEN_PALM":
         print("Commande détectée : Décollage du drone")
-        me.takeoff()
+        #me.takeoff()
         return True
     elif command == "FIST":
         print("Commande détectée : Atterrissage du drone")
-        me.land()
+        #me.land()
         return False
     elif command == "UP":
         print(f"Commande détectée : Monter de {MOVE_DIST} cm")
-        me.move_up(MOVE_DIST)
+        #me.move_up(MOVE_DIST)
     elif command == "DOWN":
         print(f"Commande détectée : Descendre de {MOVE_DIST} cm")
-        me.move_down(MOVE_DIST)
+        #me.move_down(MOVE_DIST)
     elif command == "LEFT":
         print(f"Commande détectée : Aller à gauche de {MOVE_DIST} cm")
-        me.move_left(MOVE_DIST)
+        #me.move_left(MOVE_DIST)
     elif command == "RIGHT":
         print(f"Commande détectée : Aller à droite de {MOVE_DIST} cm")
-        me.move_right(MOVE_DIST)
+        #me.move_right(MOVE_DIST)
     elif command == "INDEX_FRONT":
         print(f"Commande détectée : Aller vers l'avant de {MOVE_DIST} cm")
-        me.move_forward(MOVE_DIST)
+        #me.move_forward(MOVE_DIST)
     elif command == "PINKY_BACK":
         print(f"Commande détectée : Aller vers l'arrière de {MOVE_DIST} cm")
-        me.move_back(MOVE_DIST)
+        #me.move_back(MOVE_DIST)
     else:
         print(f"Commande inconnue : {command}")
     return None

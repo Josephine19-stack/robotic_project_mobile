@@ -23,6 +23,12 @@ import os
 import sys
 
 VIDEO_FOLDER = "output_videos"
+MAX_DURATION = 180  # seconds
+
+# Charger le modèle de reconnaissance de gestes
+current_dir = os.path.dirname(__file__)
+model_save_path = os.path.join(current_dir, 'data', 'keypoint_classifier.keras')
+gesture_model = tf.keras.models.load_model(model_save_path)
 
 # # Définir codec et créer l’objet VideoWriter
 os.makedirs(VIDEO_FOLDER, exist_ok=True)
@@ -37,21 +43,26 @@ video_out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height
 
 # init
 tello = init_tello_video()
-tello = init_stream(tello)
+
+battery = tello.get_battery()
+print(f"Battery: {battery}%")
+if battery < 20:
+    print("Battery too low. Aborting.")
+    exit()
+
+tello = init_stream(tello)  
 frame_reader = tello.get_frame_read()
 
-def update_frames():
-    while True:
-        frame_reader.frame  # force update 'ajouter une sécurité sur frame_reader.frame avant de l’utiliser, car le flux peut parfois être vide au démarrage.
-        time.sleep(0.01)
-        
-threading.Thread(target=update_frames, daemon=True).start()
+mediapipeController = MediapipeController(tello, gesture_model)
 
 def emergency_land(*args):
     try:
-        print("Emergency landing...")
-        tello.land()
-        tello.streamoff()
+        if mediapipeController.command_manager.is_flying:
+            print("The Tello drone is still flying;", end='')
+        print("we’re forcing it to land...")
+        send_tello_command(tello, "FIST")
+        mediapipeController.clean()
+        close_stream(tello)
     except Exception as e:
         print(f"Error during emergency landing: {e}")
     finally:
@@ -59,30 +70,27 @@ def emergency_land(*args):
         video_out.release()
         sys.exit(0)
         
-#signal.signal(signal.SIGINT, emergency_land)
-#signal.signal(signal.SIGTERM, emergency_land)
-#atexit.register(emergency_land)
+signal.signal(signal.SIGINT, emergency_land)
+signal.signal(signal.SIGTERM, emergency_land)
+atexit.register(emergency_land)
+
+def update_frames():
+    while True:
+        frame_reader.frame  # force update 'ajouter une sécurité sur frame_reader.frame avant de l’utiliser, car le flux peut parfois être vide au démarrage.
+        time.sleep(0.01)
         
+threading.Thread(target=update_frames, daemon=True).start()
+      
 def generate_frames():
-
-    # Charger le modèle de reconnaissance de gestes
-    current_dir = os.path.dirname(__file__)
-    model_save_path = os.path.join(current_dir, 'data', 'keypoint_classifier.keras')
-    gesture_model = tf.keras.models.load_model(model_save_path)
-
-    mediapipeController = MediapipeController(tello, gesture_model)
-
     last_print_time = 0
     print_interval = 5 #secondes
     
-    battery_var = tello.get_battery()
-    print(f"Battery is: {battery_var}")
-    
-    if battery_var > 20:
-        print("Drone connecté.")
-
+    start_time = time.time()
+    try: 
         while True:
             frame = frame_reader.frame
+            if frame is None:
+                continue
             frame = cv2.resize(frame, (640, 480))
 
             frame, booleen = mediapipeController.detect_hand_landmarks_and_control_drone(frame)
@@ -107,14 +115,15 @@ def generate_frames():
             # Envoi au flux Flask
             yield (b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-           
-    if mediapipeController.command_manager.is_flying:
-        print("Forçage de l'atterrissage...")
-        send_tello_command(tello, "FIST")
-        
-    mediapipeController.clean()
-    close_stream(tello)
-    video_out.release()
-    cv2.destroyAllWindows()
-    sys.exit(0)
+            
+            if time.time() - start_time > MAX_DURATION:
+                print("Max duration reached — landing.")
+                break
+
+            time.sleep(1 / 15.0)
+                
+    except KeyboardInterrupt:
+        print("KeyboardInterrupt — landing.")
+    finally:
+        emergency_land()
 # vérifier au debut qu'il n'y ait pas d'autres instances du meme code qui tourne SINON erreur 
