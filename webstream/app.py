@@ -3,24 +3,65 @@ import webbrowser
 import threading
 import time
 
-USE_PID = False  # ← Switch to False to use basic tracking
-
-# === Import the appropriate drone stream generator ===
-if USE_PID:
-    from tello_pid.tello_pid_main import generate_frames
-else:
-    from tello_basic.tello_basic_main import generate_frames
+from tello_basic.tello_basic_main import generate_frames
 
 app = Flask(__name__)
+
+HTML_TEMPLATE = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tello Drone Live</title>
+    <style>
+        body {{
+            background-color: #121212;
+            color: #00ff99;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }}
+        h1 {{
+            margin-top: 30px;
+            font-size: 2.5em;
+        }}
+        p {{
+            color: #888;
+            font-size: 1em;
+        }}
+        .video-container {{
+            margin-top: 40px;
+        }}
+        img {{
+            border: 5px solid #00ff99;
+            border-radius: 15px;
+            max-width: 90%;
+            height: auto;
+            box-shadow: 0 0 30px #00ff99;
+        }}
+        footer {{
+            margin-top: 40px;
+            color: #555;
+        }}
+    </style>
+</head>
+<body>
+    <h1>📡 Tello Live Stream</h1>
+    <p>Tracking mode: <strong>{"Basic"}</strong></p>
+    <div class="video-container">
+        <img src="/video_feed" alt="Live Drone Stream">
+    </div>
+    <footer>
+        <p>Drone stream powered by Flask + djitellopy</p>
+    </footer>
+</body>
+</html>
+"""
 
 
 @app.route('/')
 def index():
-    return """
-    <h2>📡 Live Tello Stream</h2>
-    <p>Streaming {mode} drone logic</p>
-    <img src='/video_feed'>
-    """.format(mode="PID-based" if USE_PID else "Basic")
+    return HTML_TEMPLATE
 
 
 @app.route('/video_feed')
