@@ -2,6 +2,10 @@ import itertools
 import numpy as np
 
 def preprocess_mediapipe_landmarks(landmarks, image_width, image_height):
+    """
+    This function preprocesses MediaPipe hand landmarks to prepare them for gesture classification.  
+    It converts landmarks to pixel coordinates, centers them relative to the wrist, flattens the list, and normalizes the values.
+    """
     # Convert to absolute pixel coordinates
     landmark_list = []
     for lm in landmarks.landmark:

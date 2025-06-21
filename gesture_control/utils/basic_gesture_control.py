@@ -1,21 +1,27 @@
+"""
+This module provides two gesture recognition methods for controlling a Tello drone:
+ - A hardcoded method using MediaPipe landmark geometry
+ - A model-based method using a trained gesture classification neural network
+"""
+
 import math
-from gesture_control.utils.image_treatment import preprocess_mediapipe_landmarks
 import numpy as np
 
-# manque deux commandes => move forward and backward
+from gesture_control.utils.image_treatment import preprocess_mediapipe_landmarks
+
 GESTURE_LABELS = {
-    0: 'OPEN_PALM', # decollage
-    1: 'FIST', # land
-    2: 'UP', # go up
-    3: 'LEFT', # ok sign
-    4: 'DOWN', # go down
-    5: 'RIGHT', # fist tourné
-    6: '', # move left
-    7: '' # move right
+    0: 'OPEN_PALM',   # Take off
+    1: 'FIST',        # Land
+    2: 'UP',          # Move up
+    3: 'LEFT',        # OK sign => left
+    4: 'DOWN',        # Move down
+    5: 'RIGHT',       # Fist rotated => right
+    6: '',            # Move forward
+    7: ''             # Move backward
 }
 
 def get_angle(a, b, c):
-    """Retourne l'angle en degrés entre les vecteurs ab et bc"""
+    """Returns the angle in degrees between vectors ab and bc"""
     ab = [b.x - a.x, b.y - a.y]
     bc = [c.x - b.x, c.y - b.y]
     dot = ab[0]*bc[0] + ab[1]*bc[1]
@@ -30,35 +36,31 @@ def get_angle(a, b, c):
 
 def recognize_gesture(landmarks):
         """
-        Reconnaît des gestes simples à partir des positions relatives des doigts.
-        Requiert la liste de 21 landmarks MediaPipe.
+        Recognizes simple gestures based on relative finger positions.
+        Takes as input a list of 21 MediaPipe hand landmarks.
         """
-        ## THUMBS UP AND DOWN IS NOT WORKING !!!!!
+        # FIXME: THUMBS UP AND DOWN IS NOT WORKING !!!!!
 
         fingers_up = []
 
-        # Index, majeur, annulaire, auriculaire
+        # Index, middle, ring, pinky: check if tip is above the knuckle (folded or extended)
         for tip_id in [8, 12, 16, 20]:
             if landmarks[tip_id].y < landmarks[tip_id - 2].y:
                 fingers_up.append(1)
             else:
                 fingers_up.append(0)
 
-        ### Gestion du pouce: abvec angle et s'il est tendu ou pas, vers le gauche ou droite###
-        # ATTENTION: trouver une meilleure manière de gérer le pouce
-        palm_ids = [0, 1, 2, 5, 9, 13, 17]
-        palm_center_y = sum(landmarks[i].y for i in palm_ids) / len(palm_ids)
-        
+        # Thumb logic: using angle + lateral position      
         thumb_angle = get_angle(landmarks[2], landmarks[3], landmarks[4])
         score_right = 0
         score_left = 0
 
-        # Angle (tendu ou pas)
+        # Extension
         if thumb_angle > 150:
             score_right += 1
             score_left += 1
 
-        # Position latérale (plus discriminante)
+        # Lateral position
         if landmarks[4].x > landmarks[3].x + 0.02:
             score_right += 2
         elif landmarks[4].x < landmarks[3].x - 0.02:
@@ -73,9 +75,7 @@ def recognize_gesture(landmarks):
         else:
             thumb_dir = "CENTER"
             
-        #print(f"Score right: {score_right}, Score left: {score_left}")
-            
-        # Regles
+        # Hardcoded rules based on finger and thumb states
         if fingers_up == [0, 0, 0, 0] and thumb_dir == "RIGHT":
             return "RIGHT"
         elif fingers_up == [0, 0, 0, 0] and thumb_dir == "LEFT":
@@ -92,7 +92,10 @@ def recognize_gesture(landmarks):
             return "UNKNOWN"    
 
 def recognize_gesture2(gesture_model, landmarks, image_width=640, image_height=480):
-    # Convertit les landmarks MediaPipe en vecteur normalisé (42,) et prédit le label de geste à l'aide du modèle entraîné.
+    """
+    Uses a trained neural network to classify gestures based on normalized hand landmarks.
+    Converts the landmarks into a (42,) vector, predicts the class, and returns the label.
+    """
     input_vector = preprocess_mediapipe_landmarks(landmarks, image_width, image_height)
     input_vector = np.expand_dims(input_vector, axis=0)  # shape (1, 42)
     prediction = gesture_model.predict(input_vector)

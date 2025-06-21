@@ -1,47 +1,40 @@
-'''
-import subprocess
-import sys
 import os
-
-python_in_venv = sys.executable  # chemin du python actuellement en cours (venv inclus)
-script_path = os.path.join("keyboardControl", "keyboardControl.py")
-
-subprocess.run([python_in_venv, script_path])
-'''
-import cv2
-from gesture_control.utils.utils_tello import init_tello_video, init_stream, close_stream, send_tello_command
-from gesture_control.gesture_control_manager import MediapipeController 
-import time
-import tensorflow as tf
-
-
-import threading
+import sys
 import signal
 import atexit
+import time
+import threading
 
-import os
-import sys
+import cv2
+import tensorflow as tf
 
+from gesture_control.utils.utils_tello import init_tello_video, init_stream, close_stream, send_tello_command
+from gesture_control.gesture_control_manager import MediapipeController
+
+# === Config ===
 VIDEO_FOLDER = "output_videos"
 MAX_DURATION = 180  # seconds
+FPS = 20
+FRAME_WIDTH = 640
+FRAME_HEIGHT = 480
+PRINT_INTERVAL = 5 #secondes
 
-# Charger le modèle de reconnaissance de gestes
+# ===  Load the gesture recognition model ===
 current_dir = os.path.dirname(__file__)
 model_save_path = os.path.join(current_dir, 'data', 'keypoint_classifier.keras')
 gesture_model = tf.keras.models.load_model(model_save_path)
 
-# # Définir codec et créer l’objet VideoWriter
+# === Init Directories ===
 os.makedirs(VIDEO_FOLDER, exist_ok=True)
+
+#  === Video Recorder ===
 timestamp = time.strftime("%Y%m%d_%H%M%S")
 output_path = os.path.join(VIDEO_FOLDER, f"tello_gesture_{timestamp}.avi")
 
-fourcc = cv2.VideoWriter_fourcc(*'XVID')  # ou 'MJPG', 'X264'
-fps = 20
-frame_width = 640
-frame_height = 480
-video_out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))   
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+video_out = cv2.VideoWriter(output_path, fourcc, FPS, (FRAME_WIDTH, FRAME_HEIGHT))   
 
-# init
+# === Init Tello ===
 tello = init_tello_video()
 
 battery = tello.get_battery()
@@ -53,8 +46,10 @@ if battery < 20:
 tello = init_stream(tello)  
 frame_reader = tello.get_frame_read()
 
+# === Init MediaPipe handling  ===
 mediapipeController = MediapipeController(tello, gesture_model)
 
+# === Emergency Land ===
 def emergency_land(*args):
     try:
         if mediapipeController.command_manager.is_flying:
@@ -80,41 +75,40 @@ def update_frames():
         time.sleep(0.01)
         
 threading.Thread(target=update_frames, daemon=True).start()
-      
+
+# === Main Generator ===
 def generate_frames():
-    last_print_time = 0
-    print_interval = 5 #secondes
-    
+    last_print_time = 0    
     start_time = time.time()
+    
     try: 
         while True:
             frame = frame_reader.frame
             if frame is None:
                 continue
             frame = cv2.resize(frame, (640, 480))
-
+            
             frame, booleen = mediapipeController.detect_hand_landmarks_and_control_drone(frame)
             
             if not booleen:
                 current_time = time.time()
-                if current_time - last_print_time > print_interval:
+                if current_time - last_print_time > PRINT_INTERVAL:
                     print("The landmarks were not detected")
                     last_print_time = current_time
-            
-            if tello.get_battery() < 20:
-                print(f'Tello battery is {tello.get_battery()}. Atterrissage forcé.')
-                send_tello_command(tello, "FIST")
-                break
             
             video_out.write(frame)
             ret, buffer = cv2.imencode('.jpg', frame)
             if not ret:
                 continue
             frame = buffer.tobytes()
-
-            # Envoi au flux Flask
+            
             yield (b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            
+            # === Conditions that stops the while loop ===
+            if tello.get_battery() < 20:
+                print(f'Tello battery is {tello.get_battery()}. Forced landing.')
+                break
             
             if time.time() - start_time > MAX_DURATION:
                 print("Max duration reached — landing.")
@@ -126,4 +120,5 @@ def generate_frames():
         print("KeyboardInterrupt — landing.")
     finally:
         emergency_land()
+        
 # vérifier au debut qu'il n'y ait pas d'autres instances du meme code qui tourne SINON erreur 

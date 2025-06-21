@@ -1,7 +1,12 @@
 import time
+
 from gesture_control.utils.utils_tello import send_tello_command
 
 class CommandManager:
+    """
+    This class manages gesture-based commands sent to the Tello drone.  
+    It enforces cooldowns between commands and controls whether takeoff or landing is allowed based on flight status.
+    """
     def __init__(self, tello):
         self.tello = tello
         self.is_flying = False
@@ -12,23 +17,24 @@ class CommandManager:
     def try_send_command(self, gesture):
         current_time = time.time()
 
-        # Trop tôt pour envoyer une nouvelle commande
+        # Too early to send a new command
         if (current_time - self.last_command_time) < self.command_delay:
-            return  # silencieux
+            return  # silent
 
-        # Si drone est au sol, seule commande possible est "OPEN_PALM"
+        # If the drone is on the ground, the only allowed command is "OPEN_PALM"
         if not self.is_flying:
             if gesture != self.allowed_first_gesture:
                 print(f"[Refusé] Geste '{gesture}' ignoré : le drone est au sol.")
                 return
         else:
-            # Si le drone est déjà en vol, interdire un décollage
+            # If the drone is already flying, takeoff is not allowed
             if gesture == self.allowed_first_gesture:
                 print(f"[Refusé] Geste '{gesture}' ignoré : le drone est déjà en vol.")
                 return
 
-        # Envoi de la commande
+        # Sending command
         result = send_tello_command(self.tello, gesture)
         if result is not None:
             self.is_flying = result
+            
         self.last_command_time = current_time
