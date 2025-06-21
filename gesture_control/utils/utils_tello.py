@@ -1,5 +1,5 @@
 from djitellopy import tello
-MOVE_DIST = 35  # cm #attention
+MOVE_DIST = 30  # cm #attention
 
 def init_tello_video():
     me = tello.Tello()

@@ -1,8 +1,8 @@
 import mediapipe as mp
 import cv2
 import time 
-from utils.basic_gesture_control import recognize_gesture, recognize_gesture2
-from command_manager import CommandManager
+from gesture_control.utils.basic_gesture_control import recognize_gesture, recognize_gesture2
+from gesture_control.command_manager import CommandManager
 
 class MediapipeController:
     def __init__(self, tello, model):
@@ -36,8 +36,8 @@ class MediapipeController:
                     
                     # éviter de spammer avec des gestes
                     self.command_manager.try_send_command(gesture)
-        cv2.imshow('Hand Gesture Recognition', frame)
-        return bool(results.multi_hand_landmarks)
-    
+                    
+        #cv2.imshow('Hand Gesture Recognition', frame)  ### plus utile depuis qu'on utilise flask
+        return frame, bool(results.multi_hand_landmarks)
     def clean(self):
         self.hands.close()

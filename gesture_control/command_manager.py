@@ -1,12 +1,12 @@
 import time
-from utils.utils_tello import send_tello_command
+from gesture_control.utils.utils_tello import send_tello_command
 
 class CommandManager:
     def __init__(self, tello):
         self.tello = tello
         self.is_flying = False
         self.last_command_time = 0
-        self.command_delay = 1.0  # secondes
+        self.command_delay = 5.0  # secondes
         self.allowed_first_gesture = "OPEN_PALM"
     
     def try_send_command(self, gesture):

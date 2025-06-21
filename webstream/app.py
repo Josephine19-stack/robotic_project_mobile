@@ -3,8 +3,8 @@ import webbrowser
 import threading
 import time
 
-from tello_basic.tello_basic_main import generate_frames
-
+#from tello_basic.tello_basic_main import generate_frames
+from gesture_control.main import generate_frames
 app = Flask(__name__)
 
 HTML_TEMPLATE = f"""

@@ -1,5 +1,5 @@
 import math
-from utils.image_treatment import preprocess_mediapipe_landmarks
+from gesture_control.utils.image_treatment import preprocess_mediapipe_landmarks
 import numpy as np
 
 # manque deux commandes => move forward and backward
@@ -7,11 +7,11 @@ GESTURE_LABELS = {
     0: 'OPEN_PALM', # decollage
     1: 'FIST', # land
     2: 'UP', # go up
-    3: '', 
+    3: 'LEFT', # ok sign
     4: 'DOWN', # go down
-    5: '', 
-    6: 'LEFT', # move left
-    7: 'RIGHT' # move right
+    5: 'RIGHT', # fist tourné
+    6: '', # move left
+    7: '' # move right
 }
 
 def get_angle(a, b, c):
@@ -80,10 +80,6 @@ def recognize_gesture(landmarks):
             return "RIGHT"
         elif fingers_up == [0, 0, 0, 0] and thumb_dir == "LEFT":
             return "LEFT"
-        elif fingers_up == [0, 0, 0, 0] and landmarks[4].y < palm_center_y - 0.02:
-            return "UP"
-        elif fingers_up == [0, 0, 0, 0] and landmarks[4].y > palm_center_y + 0.02:
-            return "DOWN"
         elif fingers_up == [1, 1, 1, 1] and thumb_dir in ["RIGHT", "LEFT"]:
             return "OPEN_PALM"
         elif fingers_up == [0, 0, 0, 0] and thumb_dir == "FOLDED":
