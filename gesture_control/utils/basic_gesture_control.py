@@ -7,7 +7,8 @@ This module provides two gesture recognition methods for controlling a Tello dro
 import math
 import numpy as np
 
-from gesture_control.utils.image_treatment import preprocess_mediapipe_landmarks
+#from gesture_control.utils.image_treatment import preprocess_mediapipe_landmarks
+from utils.image_treatment import preprocess_mediapipe_landmarks
 
 GESTURE_LABELS = {
     0: 'OPEN_PALM',   # Take off
@@ -33,22 +34,21 @@ def get_angle(a, b, c):
     angle = math.acos(max(min(cos_angle, 1), -1))
     return math.degrees(angle)
 
+def is_finger_up(tip_id, landmarks):
+    return landmarks[tip_id].y < landmarks[tip_id - 2].y
 
+def define_orientation_hand(landmarks):
+    y_tips = [landmarks[i].y for i in [8, 12, 16, 20]]
+    return max(y_tips) - min(y_tips)
+            
 def recognize_gesture(landmarks):
         """
         Recognizes simple gestures based on relative finger positions.
         Takes as input a list of 21 MediaPipe hand landmarks.
         """
         # FIXME: THUMBS UP AND DOWN IS NOT WORKING !!!!!
-
-        fingers_up = []
-
-        # Index, middle, ring, pinky: check if tip is above the knuckle (folded or extended)
-        for tip_id in [8, 12, 16, 20]:
-            if landmarks[tip_id].y < landmarks[tip_id - 2].y:
-                fingers_up.append(1)
-            else:
-                fingers_up.append(0)
+            
+        fingers_up = [is_finger_up(i, landmarks) for i in [8, 12, 16, 20]]
 
         # Thumb logic: using angle + lateral position      
         thumb_angle = get_angle(landmarks[2], landmarks[3], landmarks[4])
@@ -59,7 +59,7 @@ def recognize_gesture(landmarks):
         if thumb_angle > 150:
             score_right += 1
             score_left += 1
-
+            
         # Lateral position
         if landmarks[4].x > landmarks[3].x + 0.02:
             score_right += 2
@@ -71,19 +71,27 @@ def recognize_gesture(landmarks):
         elif score_right > score_left:
             thumb_dir = "RIGHT"
         elif score_left > score_right:
-            thumb_dir = "LEFT"
+            thumb_dir = "LEFT"            
         else:
             thumb_dir = "CENTER"
             
+        index_tip = landmarks[8]
+        thumb_tip = landmarks[4]
+        dist_index_thumb = math.hypot(index_tip.x - thumb_tip.x, index_tip.y - thumb_tip.y)
+        
         # Hardcoded rules based on finger and thumb states
-        if fingers_up == [0, 0, 0, 0] and thumb_dir == "RIGHT":
+        if fingers_up == [0, 0, 0, 0] and thumb_angle > 160:
+            return "BACK"
+        elif fingers_up == [0, 1, 1, 1] and dist_index_thumb < 0.05:
+            return "OK_SIGN"
+        elif fingers_up == [0, 0, 0, 0] and thumb_dir == "FOLDED":
+            return "FIST"
+        elif fingers_up == [0, 0, 0, 0] and thumb_dir == "RIGHT":
             return "RIGHT"
         elif fingers_up == [0, 0, 0, 0] and thumb_dir == "LEFT":
             return "LEFT"
         elif fingers_up == [1, 1, 1, 1] and thumb_dir in ["RIGHT", "LEFT"]:
             return "OPEN_PALM"
-        elif fingers_up == [0, 0, 0, 0] and thumb_dir == "FOLDED":
-            return "FIST"
         elif fingers_up == [1, 0, 0, 0]:
             return "INDEX_FRONT"
         elif fingers_up == [0, 0, 0, 1]:
