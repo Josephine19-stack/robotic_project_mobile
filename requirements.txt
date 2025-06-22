@@ -4,3 +4,4 @@ djitellopy
 numpy
 pygame
 tensorflow
+flask
