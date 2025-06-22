@@ -44,6 +44,6 @@ Surveillance du vol et de la batterie. Atterrissage automatique en cas de danger
 Créer un environnement virtuel (ex: `tello_env`) puis exécuter :
 
 ```bash
-pip install opencv-python mediapipe djitellopy numpy flask
+pip install -r requirements.txt
 
 
