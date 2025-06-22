@@ -21,7 +21,7 @@ PRINT_INTERVAL = 5 #secondes
 
 # ===  Load the gesture recognition model ===
 current_dir = os.path.dirname(__file__)
-model_save_path = os.path.join(current_dir, 'data', 'keypoint_classifier.keras')
+model_save_path = os.path.join(current_dir, 'data', 'keypoint_classifier_merge.keras')
 gesture_model = tf.keras.models.load_model(model_save_path)
 
 # === Init Directories ===

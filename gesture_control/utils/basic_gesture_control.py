@@ -7,8 +7,8 @@ This module provides two gesture recognition methods for controlling a Tello dro
 import math
 import numpy as np
 
-#from gesture_control.utils.image_treatment import preprocess_mediapipe_landmarks
-from utils.image_treatment import preprocess_mediapipe_landmarks
+from gesture_control.utils.image_treatment import preprocess_mediapipe_landmarks
+# To test : from utils.image_treatment import preprocess_mediapipe_landmarks
 
 GESTURE_LABELS = {
     0: 'OPEN_PALM',
