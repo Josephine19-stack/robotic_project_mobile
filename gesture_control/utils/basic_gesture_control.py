@@ -11,14 +11,16 @@ import numpy as np
 from utils.image_treatment import preprocess_mediapipe_landmarks
 
 GESTURE_LABELS = {
-    0: 'OPEN_PALM',   # Take off
-    1: 'FIST',        # Land
-    2: 'UP',          # Move up
-    3: 'LEFT',        # OK sign => left
-    4: 'DOWN',        # Move down
-    5: 'RIGHT',       # Fist rotated => right
-    6: '',            # Move forward
-    7: ''             # Move backward
+    0: 'OPEN_PALM',
+    1: 'FIST',
+    2: 'MOVE_UP',
+    3: 'OK_SIGN',
+    4: 'MOVE_DOWN',
+    5: 'BACK',
+    6: 'LEFT',
+    7: 'RIGHT',
+    8: 'INDEX_FRONT',
+    9: 'PINKY_BACK'
 }
 
 def get_angle(a, b, c):

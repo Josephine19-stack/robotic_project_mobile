@@ -1,6 +1,7 @@
 from djitellopy import tello
 
 MOVE_DIST = 30  # cm
+ROTATION_DEGREE = 45
 
 def init_tello_video():
     me = tello.Tello()
@@ -24,10 +25,10 @@ def send_tello_command(me, command):
         print("Command detected: Drone landing")
         # me.land()
         return False
-    elif command == "UP":
+    elif command == "MOVE_UP":
         print(f"Command detected: Ascend by {MOVE_DIST} cm")
         # me.move_up(MOVE_DIST)
-    elif command == "DOWN":
+    elif command == "MOVE_DOWN":
         print(f"Command detected: Descend by {MOVE_DIST} cm")
         # me.move_down(MOVE_DIST)
     elif command == "LEFT":
@@ -42,6 +43,12 @@ def send_tello_command(me, command):
     elif command == "PINKY_BACK":
         print(f"Command detected: Move backward by {MOVE_DIST} cm")
         # me.move_back(MOVE_DIST)
+    elif command == "OK_SIGN":
+        print(f"Command detected: Rotate clockwise {ROTATION_DEGREE}")
+        # me.rotate_clockwise(ROTATION_DEGREE)
+    elif command == "BACK":
+        print(f"Command detected: Rotate counter-clockwise {ROTATION_DEGREE}")
+        # me.rotate_counter_clockwise(ROTATION_DEGREE)
     else:
         print(f"Unknown command: {command}")
     return None
