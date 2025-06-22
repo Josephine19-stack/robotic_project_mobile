@@ -37,6 +37,15 @@ def get_angle(a, b, c):
 def is_finger_up(tip_id, landmarks):
     return landmarks[tip_id].y < landmarks[tip_id - 2].y
 
+def is_finger_down(tip_id, landmarks):
+    return landmarks[tip_id].y > landmarks[tip_id - 2].y
+
+def is_finger_down_and_under(tip_id, landmarks):
+    wrist_y = landmarks[0].y
+    thumb_tip_y = landmarks[4].y
+    index_tip_y = landmarks[tip_id].y
+    return (index_tip_y > wrist_y + 0.04) and (index_tip_y > thumb_tip_y + 0.02) and is_finger_down(tip_id, landmarks)
+    
 def define_orientation_hand(landmarks):
     y_tips = [landmarks[i].y for i in [8, 12, 16, 20]]
     return max(y_tips) - min(y_tips)
@@ -79,6 +88,9 @@ def recognize_gesture(landmarks):
         thumb_tip = landmarks[4]
         dist_index_thumb = math.hypot(index_tip.x - thumb_tip.x, index_tip.y - thumb_tip.y)
         
+        other_fingers_folded = fingers_up[1:] == [0, 0, 0]
+        other_fingers_upright = fingers_up[1:] == [1, 1, 1]
+        
         # Hardcoded rules based on finger and thumb states
         if fingers_up == [0, 0, 0, 0] and thumb_angle > 160:
             return "BACK"
@@ -86,6 +98,10 @@ def recognize_gesture(landmarks):
             return "OK_SIGN"
         elif fingers_up == [0, 0, 0, 0] and thumb_dir == "FOLDED":
             return "FIST"
+        elif is_finger_up(8, landmarks) and other_fingers_folded and thumb_dir == "LEFT":
+            return "MOVE_UP"
+        elif is_finger_down_and_under(8, landmarks) and other_fingers_upright and thumb_dir == "LEFT":
+            return "MOVE_DOWN"
         elif fingers_up == [0, 0, 0, 0] and thumb_dir == "RIGHT":
             return "RIGHT"
         elif fingers_up == [0, 0, 0, 0] and thumb_dir == "LEFT":
