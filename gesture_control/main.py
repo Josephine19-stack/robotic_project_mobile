@@ -77,7 +77,7 @@ def update_frames():
 threading.Thread(target=update_frames, daemon=True).start()
 
 # === Main Generator ===
-def generate_frames():
+def generate_frames_gesture():
     last_print_time = 0    
     start_time = time.time()
     

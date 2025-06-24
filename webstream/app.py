@@ -1,10 +1,12 @@
+import os
 from flask import Flask, Response
 import webbrowser
 import threading
 import time
+import sys
 
-#from tello_basic.tello_basic_main import generate_frames
-from gesture_control.main import generate_frames
+mode_name = sys.argv[1] if len(sys.argv) > 1 else "basic"
+
 app = Flask(__name__)
 
 HTML_TEMPLATE = f"""
@@ -58,21 +60,24 @@ HTML_TEMPLATE = f"""
 </html>
 """
 
-
 @app.route('/')
 def index():
     return HTML_TEMPLATE
 
-
 @app.route('/video_feed')
 def video_feed():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
+    if mode_name == "gesture":
+        print("We are running with the gesture mode.")
+        from gesture_control.main import generate_frames_gesture
+        return Response(generate_frames_gesture(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    else:
+        print("We are running with the basic mode.")
+        from tello_basic.tello_basic_main import generate_frames
+        return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def open_browser():
     time.sleep(1)
     webbrowser.open_new("http://localhost:5000")
-
 
 if __name__ == '__main__':
     threading.Thread(target=open_browser).start()
