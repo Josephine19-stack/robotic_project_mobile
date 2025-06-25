@@ -37,18 +37,19 @@ La V1 permet l'ajout de nouvelles commandes.
 
 #### ✋ Gestes reconnus
 
-| Geste              | Image                                               | Action associée           |
-|-------------------|-----------------------------------------------------|---------------------------|
-| Décoller          | ![](images/gestes/decoller.png)                     | Le drone décolle          |
-| Atterrir          | ![](images/gestes/atterrir.png)                     | Le drone atterrit         |
-| Haut              | ![](images/gestes/haut.png)                         | Le drone monte            |
-| Bas               | ![](images/gestes/bas.png)                          | Le drone descend          |
-| Reculer           | ![](images/gestes/reculer.png)                      | Le drone recule           |
-| Avancer           | ![](images/gestes/avancer.png)                      | Le drone avance           |
-| Rotation horaire  | ![](images/gestes/rotation_horaire.png)            | Rotation vers la droite   |
-| Rotation antihoraire | ![](images/gestes/rotation_antihoraire.png)     | Rotation vers la gauche   |
-| Droite            | ![](images/gestes/droite.png)                       | Le drone va à droite      |
-| Gauche            | ![](images/gestes/gauche.png)                       | Le drone va à gauche      |
+| Geste              | Image                                                  | Action associée           |
+|-------------------|--------------------------------------------------------|---------------------------|
+| Décoller          | <img src="images/gestes/decoller.png" width="100"/>    | Le drone décolle          |
+| Atterrir          | <img src="images/gestes/atterrir.png" width="100"/>    | Le drone atterrit         |
+| Haut              | <img src="images/gestes/haut.png" width="100"/>        | Le drone monte            |
+| Bas               | <img src="images/gestes/bas.png" width="100"/>         | Le drone descend          |
+| Reculer           | <img src="images/gestes/reculer.png" width="100"/>     | Le drone recule           |
+| Avancer           | <img src="images/gestes/avancer.png" width="100"/>     | Le drone avance           |
+| Rotation horaire  | <img src="images/gestes/rotation_horaire.png" width="100"/> | Rotation vers la droite   |
+| Rotation antihoraire | <img src="images/gestes/rotation_antihoraire.png" width="100"/> | Rotation vers la gauche   |
+| Droite            | <img src="images/gestes/droite.png" width="100"/>      | Le drone va à droite      |
+| Gauche            | <img src="images/gestes/gauche.png" width="100"/>      | Le drone va à gauche      |
+
 
 ### Sécurité
 Surveillance du vol et de la batterie. Atterrissage automatique en cas de danger ou de perte de détection.
